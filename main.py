@@ -50,10 +50,6 @@ class CurrentFight(ttk.LabelFrame):
 
     def create_widgets(self):
         # Use anchor=tl.CENTER and fill=tk.X to center vertically
-
-
-
-
         king = ttk.Label(self, text="Krist Martens", anchor=tk.CENTER, font=LARGE_FONT, foreground='red')
         king.pack(fill=tk.BOTH, expand=1, side=tk.LEFT)
 
@@ -63,6 +59,8 @@ class CurrentFight(ttk.LabelFrame):
         button_king_add_point.pack(side=tk.LEFT, expand=1, fill=tk.X)
         button_king_substract_point = ttk.Button(king_button_frame, text="-1")
         button_king_substract_point.pack(side=tk.LEFT, expand=1, fill=tk.X)
+        button_king_move_to_queue = ttk.Button(king_button_frame, text="Move to queue")
+        button_king_move_to_queue.pack(side=tk.LEFT, expand=1, fill=tk.X)
 
         vs = ttk.Label(self, text="Versus", anchor=tk.CENTER)
         vs.pack(fill=tk.BOTH, side=tk.LEFT, expand=1)
@@ -76,6 +74,12 @@ class CurrentFight(ttk.LabelFrame):
         button_contender_add_point.pack(side=tk.LEFT, expand=1, fill=tk.X)
         button_contender_substract_point = ttk.Button(contender_button_frame, text="-1")
         button_contender_substract_point.pack(side=tk.LEFT, expand=1, fill=tk.X)
+        button_contender_back_to_queue = ttk.Button(contender_button_frame, text="Back to queue")
+        button_contender_back_to_queue.pack(side=tk.LEFT, expand=1, fill=tk.X)
+        button_contender_make_king = ttk.Button(contender_button_frame, text="Make king")
+        button_contender_make_king.pack(side=tk.LEFT, expand=1, fill=tk.X)
+
+
 
 class Timer(ttk.Frame):
     def __init__(self, master=None, *args, **kwargs):
