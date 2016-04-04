@@ -162,8 +162,6 @@ class Timer(ttk.Frame):
 class Scoreboard(tk.Tk):
     def __init__(self, master=None):
         super(Scoreboard, self).__init__(master)
-
-
         parser = configparser.ConfigParser()
         parser.read('initial_values.ini')
         self.contestants = [Contestant(name=name) for name in parser.get("contestants", "names").split("\n")]
@@ -183,6 +181,7 @@ class Scoreboard(tk.Tk):
         self.attach_events()
 
         self.update()
+
 
     def create_frames(self, time_left=0):
         self.frame_right = ttk.Frame(master=self)
@@ -264,6 +263,21 @@ class Scoreboard(tk.Tk):
             # Space pressed
             self.frame_timer.timer_action()
 
+    def open_admin(self):
+        new_window = tk.Toplevel(self)
+        tree = ttk.Treeview(master=new_window)
+        tree["columns"]=("contestant", "score", "is_king", 'is_contender')
+        tree.column("contestant", width=100)
+        tree.column("score", width=100)
+        tree.heading("contestant", text="Contestant")
+        tree.heading("score", text="Score")
+        tree.heading("is_king", text="Is king?")
+        tree.heading("is_contender", text="Is contender?")
+
+        tree.insert("" , 0,    text="Line 1", values=("1A","1b"))
+
+        tree.grid()
+        tree.focus_force()
 
 
 app = Scoreboard()
@@ -278,8 +292,9 @@ style.configure('Red.TLabel', background='red')
 style.configure('TLabelframe', padding=12)
 style.configure('TLabelframe.Label', foreground='black')
 
-app.attributes("-fullscreen", True)
 
+app.attributes("-fullscreen", True)
+app.open_admin()
 app.bind_all("<Key>", app.catch_keypress)
 
 app.mainloop()
