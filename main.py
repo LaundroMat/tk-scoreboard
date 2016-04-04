@@ -101,19 +101,25 @@ class CurrentFight(ttk.LabelFrame):
 class Timer(ttk.Frame):
     def __init__(self, master=None, time_left=0, *args, **kwargs):
         super(Timer, self).__init__(master, *args, **kwargs)
-        self.is_paused = True
         self.time_left = datetime.timedelta(seconds=time_left)
         self.display_time = tk.StringVar()
         self.create_widgets()
         self.lbl_display.config(textvariable=self.display_time)
         self.display_time.set("{0}".format(self.time_left))
 
-        self.job_blink = None
+        self.is_paused = True
         self.tick_tock()
+        self.blink()
 
     def create_widgets(self):
-        self.lbl_display = ttk.Label(self, style="Timer.TLabel")
+        self.frame = ttk.Frame(self)
+        self.lbl_display = ttk.Label(self.frame, style="Timer.TLabel")
         self.lbl_display.pack()
+        self.button_add_5_seconds = ttk.Button(self.frame, text="+5 seconds")
+        self.button_add_5_seconds.pack(side=tk.LEFT)
+        self.button_substract_5_seconds = ttk.Button(self.frame, text="-5 seconds")
+        self.button_substract_5_seconds.pack()
+        self.frame.pack()
 
     def tick_tock(self):
         if not self.is_paused:
@@ -126,6 +132,7 @@ class Timer(ttk.Frame):
             self.is_paused = False
             if self.job_blink:
                 self.after_cancel(self.job_blink)
+            self.lbl_display.configure(style="Timer.TLabel")
             self.tick_tock()
         else:
             self.is_paused = True
@@ -141,6 +148,13 @@ class Timer(ttk.Frame):
 
         self.job_blink = self.after(500, self.blink)
 
+    def add_5_seconds(self, event):
+        self.time_left += datetime.timedelta(seconds=5)
+        self.display_time.set("{0}".format(self.time_left))
+
+    def substract_5_seconds(self, event):
+        self.time_left -= datetime.timedelta(seconds=5)
+        self.display_time.set("{0}".format(self.time_left))
 
 
 class Scoreboard(tk.Tk):
@@ -196,6 +210,10 @@ class Scoreboard(tk.Tk):
         self.frame_current_fight.button_challenger_substract_point.bind("<Button-1>", self.substract_point_for_challenger)
         self.frame_current_fight.button_challenger_back_to_queue.bind("<Button-1>", self.move_challenger_back_to_queue)
         self.frame_current_fight.button_challenger_make_king.bind("<Button-1>", self.make_challenger_king)
+
+        self.frame_timer.button_add_5_seconds.bind("<Button-1>", self.frame_timer.add_5_seconds)
+        self.frame_timer.button_substract_5_seconds.bind("<Button-1>", self.frame_timer.substract_5_seconds)
+
 
     def add_point_to_king(self, event):
         self.contestants[0].score += 1
