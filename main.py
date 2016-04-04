@@ -84,19 +84,19 @@ class CurrentFight(ttk.LabelFrame):
         vs = ttk.Label(self, text="versus", anchor=tk.CENTER)
         vs.pack(fill=tk.BOTH, side=tk.LEFT, expand=1)
 
-        self.lbl_contender = ttk.Label(self, font=LARGE_FONT, foreground='blue', anchor=tk.CENTER)
-        self.lbl_contender.pack(fill=tk.BOTH, expand=1, side=tk.LEFT)
+        self.lbl_challenger = ttk.Label(self, font=LARGE_FONT, foreground='blue', anchor=tk.CENTER)
+        self.lbl_challenger.pack(fill=tk.BOTH, expand=1, side=tk.LEFT)
 
-        contender_button_frame = ttk.Frame(master=self.lbl_contender)
-        contender_button_frame.pack(side=tk.BOTTOM, fill=tk.X)
-        self.button_contender_add_point = ttk.Button(contender_button_frame, text="+1")
-        self.button_contender_add_point.pack(side=tk.LEFT, expand=1, fill=tk.X)
-        self.button_contender_substract_point = ttk.Button(contender_button_frame, text="-1")
-        self.button_contender_substract_point.pack(side=tk.LEFT, expand=1, fill=tk.X)
-        self.button_contender_back_to_queue = ttk.Button(contender_button_frame, text="Back to queue")
-        self.button_contender_back_to_queue.pack(side=tk.LEFT, expand=1, fill=tk.X)
-        self.button_contender_make_king = ttk.Button(contender_button_frame, text="Make king")
-        self.button_contender_make_king.pack(side=tk.LEFT, expand=1, fill=tk.X)
+        challenger_button_frame = ttk.Frame(master=self.lbl_challenger)
+        challenger_button_frame.pack(side=tk.BOTTOM, fill=tk.X)
+        self.button_challenger_add_point = ttk.Button(challenger_button_frame, text="+1")
+        self.button_challenger_add_point.pack(side=tk.LEFT, expand=1, fill=tk.X)
+        self.button_challenger_substract_point = ttk.Button(challenger_button_frame, text="-1")
+        self.button_challenger_substract_point.pack(side=tk.LEFT, expand=1, fill=tk.X)
+        self.button_challenger_back_to_queue = ttk.Button(challenger_button_frame, text="Back to queue")
+        self.button_challenger_back_to_queue.pack(side=tk.LEFT, expand=1, fill=tk.X)
+        self.button_challenger_make_king = ttk.Button(challenger_button_frame, text="Make king")
+        self.button_challenger_make_king.pack(side=tk.LEFT, expand=1, fill=tk.X)
 
 
 class Timer(ttk.Frame):
@@ -117,6 +117,12 @@ class Scoreboard(tk.Tk):
         parser = configparser.ConfigParser()
         parser.read('initial_values.ini')
         self.contestants = [Contestant(name=name) for name in parser.get("contestants", "names").split("\n")]
+
+        self.king_name = tk.StringVar()
+        self.king_name.set(self.contestants[0].name)
+        self.challenger_name = tk.StringVar()
+        self.challenger_name.set(self.contestants[1].name)
+
         self.clock = int(parser.get('time', 'time_remaining'))
         self.clock_display = tk.StringVar()
 
@@ -138,6 +144,9 @@ class Scoreboard(tk.Tk):
 
         self.frame_upcoming = Upcoming(master=self.frame_right)
         self.frame_upcoming.pack(fill=tk.BOTH, expand=1)
+        self.frame_current_fight.lbl_king.config(textvariable=self.king_name)
+        self.frame_current_fight.lbl_challenger.config(textvariable=self.challenger_name)
+
 
         self.frame_timer = Timer(master=self.frame_right)
         self.frame_timer.pack()
@@ -152,16 +161,47 @@ class Scoreboard(tk.Tk):
 
     def attach_events(self):
         self.frame_current_fight.button_king_add_point.bind("<Button-1>", self.add_point_to_king)
+        self.frame_current_fight.button_king_substract_point.bind("<Button-1>", self.substract_point_for_king)
+        self.frame_current_fight.button_king_move_to_queue.bind("<Button-1>", self.move_king_to_queue)
+
+        self.frame_current_fight.button_challenger_add_point.bind("<Button-1>", self.add_point_for_challenger)
+        self.frame_current_fight.button_challenger_substract_point.bind("<Button-1>", self.substract_point_for_challenger)
+        self.frame_current_fight.button_challenger_back_to_queue.bind("<Button-1>", self.move_challenger_back_to_queue)
+        self.frame_current_fight.button_challenger_make_king.bind("<Button-1>", self.make_challenger_king)
 
     def add_point_to_king(self, event):
         self.contestants[0].score += 1
         self.update()
 
+    def substract_point_for_king(self, event):
+        self.contestants[0].score -= 1
+        self.update()
+
+    def move_king_to_queue(self, event):
+        self.contestants += [self.contestants.pop(0)]
+        self.update()
+
+    def add_point_for_challenger(self, event):
+        self.contestants[1].score += 1
+        self.update()
+
+    def substract_point_for_challenger(self, event):
+        self.contestants[1].score -= 1
+        self.update()
+
+    def make_challenger_king(self, event):
+        self.move_king_to_queue(event)
+        self.update()
+
+    def move_challenger_back_to_queue(self, event):
+        self.contestants += [self.contestants.pop(1)]
+        self.update()
+
     def update(self):
         self.frame_rankings.update_ranking(self.contestants)
         self.frame_upcoming.update(self.contestants)
-        self.frame_current_fight.lbl_king.config(text=self.contestants[0].name)
-        self.frame_current_fight.lbl_contender.config(text=self.contestants[1].name)
+        self.king_name.set(self.contestants[0].name)
+        self.challenger_name.set(self.contestants[1].name)
 
     def catch_keypress(self, key):
         print(key.keycode)
