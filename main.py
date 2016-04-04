@@ -1,7 +1,11 @@
+import configparser
+import operator
 from tkinter import font
 import tkinter as tk
 import tkinter.ttk as ttk
 import sys
+
+from contestant import Contestant
 
 players = range(20)
 LARGE_FONT = ('Helvetica', '36')
@@ -9,21 +13,46 @@ REGULAR_FONT = ('Helvetica', '16')
 
 
 class Rankings(ttk.Labelframe):
-    def __init__(self, master=None, *args, **kwargs):
+    def __init__(self, master=None, contestants=None, *args, **kwargs):
         super(Rankings, self).__init__(master, *args, **kwargs)
         self.config(text="Ranking")
-        self.create_widgets()
+        # self.create_widgets()
+        self.update_ranking(contestants)
 
-    def create_widgets(self):
-        for player in players:
-            line = ttk.Frame(self, style='Red.TFrame')
-            pos = ttk.Label(line, text=str(player), anchor=tk.NW)
-            name = ttk.Label(line, text='Aster Van Broekhoven El Morador Di Akk', anchor=tk.NW)
-            points = ttk.Label(line, text=str(player), anchor=tk.NW)
-            pos.pack(fill=tk.X, expand=1, side=tk.LEFT)
-            name.pack(fill=tk.X, expand=1, side=tk.LEFT)
-            points.pack(fill=tk.X, expand=1, side=tk.RIGHT)
-            line.pack(fill=tk.BOTH, expand=1)
+    def update_ranking(self, contestants):
+        if contestants:
+            # Drop children and rebuild
+            for w in self.winfo_children():
+                w.destroy()
+
+            ranking = sorted(contestants.copy(), key=operator.attrgetter('score'), reverse=True)
+            player_position = 1
+            previous_score = ranking[0].score
+            for player in ranking:
+                if player.score < previous_score:
+                    player_position += 1
+
+                line = ttk.Frame(self)
+                lbl_position = ttk.Label(line, text="{0}. ".format(str(player_position)), anchor=tk.NW)
+                lbl_position.pack(fill=tk.X, side=tk.LEFT)
+                lbl_name = ttk.Label(line, text=player.name, anchor=tk.W)
+                lbl_name.pack(fill=tk.X, expand=1, side=tk.LEFT)
+                lbl_score = ttk.Label(line, text=str(player.score), anchor=tk.NE, padding=[5, 0, 0, 0])
+                lbl_score.pack(fill=tk.X, expand=1, side=tk.RIGHT)
+                line.pack(fill=tk.BOTH, expand=1)
+
+                previous_score = player.score
+
+    # def create_widgets(self):
+    #     for player in self.ranking:
+    #         line = ttk.Frame(self, style='Red.TFrame')
+    #         pos = ttk.Label(line, text=str(player), anchor=tk.NW)
+    #         name = ttk.Label(line, text='Aster Van Broekhoven El Morador Di Akk', anchor=tk.NW)
+    #         points = ttk.Label(line, text=str(player), anchor=tk.NW)
+    #         pos.pack(fill=tk.X, expand=1, side=tk.LEFT)
+    #         name.pack(fill=tk.X, expand=1, side=tk.LEFT)
+    #         points.pack(fill=tk.X, expand=1, side=tk.RIGHT)
+    #         line.pack(fill=tk.BOTH, expand=1)
 
 
 class Upcoming(ttk.Labelframe):
@@ -80,7 +109,6 @@ class CurrentFight(ttk.LabelFrame):
         button_contender_make_king.pack(side=tk.LEFT, expand=1, fill=tk.X)
 
 
-
 class Timer(ttk.Frame):
     def __init__(self, master=None, *args, **kwargs):
         super(Timer, self).__init__(master, *args, **kwargs)
@@ -98,10 +126,16 @@ class Scoreboard(tk.Tk):
         self.clock = 6000
         self.clock_display = tk.StringVar()
 
+
         self.grid()
         self.create_frames()
         self.columnconfigure(1, weight=1)
         self.rowconfigure(0, weight=1)
+
+        parser = configparser.ConfigParser()
+        parser.read('initial_values.ini')
+        self.contestants = [Contestant(name=name) for name in parser.get("contestants", "names").split("\n")]
+        self.rankings.update_ranking(self.contestants)
 
     def create_frames(self):
         self.right = ttk.Frame(master=self)
@@ -146,7 +180,6 @@ style.configure('TLabelframe', padding=12)
 style.configure('TLabelframe.Label', foreground='black')
 
 app.attributes("-fullscreen", True)
-app.configure(bg='yellow')
 
 app.bind_all("<Key>", app.catch_keypress)
 
