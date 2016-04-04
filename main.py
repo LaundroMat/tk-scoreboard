@@ -7,10 +7,8 @@ import sys
 
 from contestant import Contestant
 
-players = range(20)
 LARGE_FONT = ('Helvetica', '36')
 REGULAR_FONT = ('Helvetica', '16')
-
 
 class Rankings(ttk.Labelframe):
     def __init__(self, master=None, contestants=None, *args, **kwargs):
@@ -45,14 +43,17 @@ class Rankings(ttk.Labelframe):
 
 
 class Upcoming(ttk.Labelframe):
-    def __init__(self, master=None):
+    def __init__(self, master=None, contestants=[]):
         super(Upcoming, self).__init__(master)
         self.config(text="Upcoming contenders")
-        self.create_widgets()
+        self.update(contestants)
 
-    def create_widgets(self):
-        for index, player in enumerate(players):
-            w = ttk.Label(self, text=str(player), anchor=tk.NW)
+    def update(self, contestants=[]):
+        for w in self.winfo_children():
+            w.destroy()
+
+        for index, player in enumerate(contestants[2:]):
+            w = ttk.Label(self, text=player.name, anchor=tk.NW)
             if index < 3:
                 w.configure(font=LARGE_FONT)
             else:
@@ -126,7 +127,7 @@ class Scoreboard(tk.Tk):
 
         self.attach_events()
 
-        self.frame_rankings.update_ranking(self.contestants)
+        self.update()
 
     def create_frames(self):
         self.frame_right = ttk.Frame(master=self)
@@ -135,7 +136,6 @@ class Scoreboard(tk.Tk):
         self.frame_current_fight.pack(fill=tk.BOTH, expand=1)
         self.frame_current_fight.lbl_king.config(text=self.contestants[0].name)
         self.frame_current_fight.lbl_contender.config(text=self.contestants[1].name)
-
 
         self.frame_upcoming = Upcoming(master=self.frame_right)
         self.frame_upcoming.pack(fill=tk.BOTH, expand=1)
@@ -156,7 +156,14 @@ class Scoreboard(tk.Tk):
 
     def add_point_to_king(self, event):
         self.contestants[0].score += 1
+        self.update()
+
+    def update(self):
+        # self.draw_current_fight(self.contestants[0], self.contestants[1])
+        # self.draw_up_next(self.contestants)
         self.frame_rankings.update_ranking(self.contestants)
+        self.frame_upcoming.update(self.contestants)
+
 
     def catch_keypress(self, key):
         print(key.keycode)
