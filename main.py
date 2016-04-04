@@ -199,11 +199,11 @@ class Scoreboard(tk.Tk):
 
     def add_point_to_king(self, event):
         self.contestants[0].score += 1
-        self.update()
+        self.update(update_current_fight=False)
 
     def substract_point_for_king(self, event):
         self.contestants[0].score -= 1
-        self.update()
+        self.update(update_current_fight=False)
 
     def move_king_to_queue(self, event):
         self.contestants += [self.contestants.pop(0)]
@@ -211,11 +211,11 @@ class Scoreboard(tk.Tk):
 
     def add_point_for_challenger(self, event):
         self.contestants[1].score += 1
-        self.update()
+        self.update(update_current_fight=False)
 
     def substract_point_for_challenger(self, event):
         self.contestants[1].score -= 1
-        self.update()
+        self.update(update_current_fight=False)
 
     def make_challenger_king(self, event):
         self.move_king_to_queue(event)
@@ -225,11 +225,14 @@ class Scoreboard(tk.Tk):
         self.contestants += [self.contestants.pop(1)]
         self.update()
 
-    def update(self):
-        self.frame_rankings.update_ranking(self.contestants)
-        self.frame_upcoming.update(self.contestants)
-        self.king_name.set(self.contestants[0].name)
-        self.challenger_name.set(self.contestants[1].name)
+    def update(self, update_rankings=True, update_upcoming=True, update_current_fight=True):
+        if update_rankings:
+            self.frame_rankings.update_ranking(self.contestants)
+        if update_upcoming:
+            self.frame_upcoming.update(self.contestants)
+        if update_current_fight:
+            self.king_name.set(self.contestants[0].name)
+            self.challenger_name.set(self.contestants[1].name)
 
     def catch_keypress(self, key):
         print(key.keycode)
