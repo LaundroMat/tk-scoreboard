@@ -113,12 +113,12 @@ class Scoreboard(tk.Tk):
     def __init__(self, master=None):
         super(Scoreboard, self).__init__(master)
 
-        self.clock = 6000
-        self.clock_display = tk.StringVar()
 
         parser = configparser.ConfigParser()
         parser.read('initial_values.ini')
         self.contestants = [Contestant(name=name) for name in parser.get("contestants", "names").split("\n")]
+        self.clock = int(parser.get('time', 'time_remaining'))
+        self.clock_display = tk.StringVar()
 
         self.grid()
         self.create_frames()
