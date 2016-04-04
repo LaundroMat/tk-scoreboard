@@ -1,9 +1,8 @@
 import configparser
 import operator
-from tkinter import font
+import datetime
 import tkinter as tk
 import tkinter.ttk as ttk
-import sys
 
 from contestant import Contestant
 
@@ -100,13 +99,48 @@ class CurrentFight(ttk.LabelFrame):
 
 
 class Timer(ttk.Frame):
-    def __init__(self, master=None, *args, **kwargs):
+    def __init__(self, master=None, time_left=0, *args, **kwargs):
         super(Timer, self).__init__(master, *args, **kwargs)
+        self.is_paused = True
+        self.time_left = datetime.timedelta(seconds=time_left)
+        self.display_time = tk.StringVar()
         self.create_widgets()
+        self.lbl_display.config(textvariable=self.display_time)
+        self.display_time.set("{0}".format(self.time_left))
+
+        self.job_blink = None
+        self.tick_tock()
 
     def create_widgets(self):
-        self.display = ttk.Label(self)
-        self.display.pack()
+        self.lbl_display = ttk.Label(self, style="Timer.TLabel")
+        self.lbl_display.pack()
+
+    def tick_tock(self):
+        if not self.is_paused:
+            self.time_left -= datetime.timedelta(seconds=1)
+            self.job_tick_tock = self.after(1000, self.tick_tock)
+        self.display_time.set("{0}".format(self.time_left))
+
+    def timer_action(self):
+        if self.is_paused:
+            self.is_paused = False
+            if self.job_blink:
+                self.after_cancel(self.job_blink)
+            self.tick_tock()
+        else:
+            self.is_paused = True
+            if self.job_tick_tock:
+                self.after_cancel(self.job_tick_tock)
+            self.blink()
+
+    def blink(self):
+        if self.lbl_display.configure().get('style')[-1] == 'Timer.TLabel':
+            self.lbl_display.configure(style="ReverseTimer.TLabel")
+        elif self.lbl_display.configure().get('style')[-1] == 'ReverseTimer.TLabel':
+            self.lbl_display.configure(style="Timer.TLabel")
+
+        self.job_blink = self.after(500, self.blink)
+
 
 
 class Scoreboard(tk.Tk):
@@ -123,11 +157,10 @@ class Scoreboard(tk.Tk):
         self.challenger_name = tk.StringVar()
         self.challenger_name.set(self.contestants[1].name)
 
-        self.clock = int(parser.get('time', 'time_remaining'))
-        self.clock_display = tk.StringVar()
+        time_left = int(parser.get('time', 'time_remaining'))
 
         self.grid()
-        self.create_frames()
+        self.create_frames(time_left=time_left)
         self.columnconfigure(1, weight=1)
         self.rowconfigure(0, weight=1)
 
@@ -135,29 +168,24 @@ class Scoreboard(tk.Tk):
 
         self.update()
 
-    def create_frames(self):
+    def create_frames(self, time_left=0):
         self.frame_right = ttk.Frame(master=self)
 
         self.frame_current_fight = CurrentFight(master=self.frame_right)
         self.frame_current_fight.pack(fill=tk.BOTH, expand=1)
-
 
         self.frame_upcoming = Upcoming(master=self.frame_right)
         self.frame_upcoming.pack(fill=tk.BOTH, expand=1)
         self.frame_current_fight.lbl_king.config(textvariable=self.king_name)
         self.frame_current_fight.lbl_challenger.config(textvariable=self.challenger_name)
 
-
-        self.frame_timer = Timer(master=self.frame_right)
+        self.frame_timer = Timer(master=self.frame_right, time_left=time_left)
         self.frame_timer.pack()
-        self.frame_timer.display.config(textvariable=self.clock_display)
 
         self.frame_rankings = Rankings(master=self)
         self.frame_rankings.grid(column=0, row=0, rowspan=3, sticky=tk.NW)
 
         self.frame_right.grid(column=1, row=0, sticky='news')
-
-        self.tick_tock()
 
     def attach_events(self):
         self.frame_current_fight.button_king_add_point.bind("<Button-1>", self.add_point_to_king)
@@ -208,11 +236,10 @@ class Scoreboard(tk.Tk):
         if key.keycode == 27:
             # ESC pressed
             self.destroy()
+        if key.keycode == 32:
+            # Space pressed
+            self.frame_timer.timer_action()
 
-    def tick_tock(self):
-        self.clock -= 1
-        self.clock_display.set(str(self.clock))
-        self.after(1000, self.tick_tock)
 
 
 app = Scoreboard()
@@ -220,6 +247,8 @@ app = Scoreboard()
 style = ttk.Style(master=app)
 style.configure('.', font=REGULAR_FONT, foreground='black')
 style.configure('TLabel', font=REGULAR_FONT)
+style.configure('Timer.TLabel', font=LARGE_FONT, foreground='red')
+style.configure('ReverseTimer.TLabel', font=LARGE_FONT, foreground='grey')
 style.configure('Red.TFrame', background='red')
 style.configure('Red.TLabel', background='red')
 style.configure('TLabelframe', padding=12)
