@@ -43,17 +43,6 @@ class Rankings(ttk.Labelframe):
 
                 previous_score = player.score
 
-    # def create_widgets(self):
-    #     for player in self.ranking:
-    #         line = ttk.Frame(self, style='Red.TFrame')
-    #         pos = ttk.Label(line, text=str(player), anchor=tk.NW)
-    #         name = ttk.Label(line, text='Aster Van Broekhoven El Morador Di Akk', anchor=tk.NW)
-    #         points = ttk.Label(line, text=str(player), anchor=tk.NW)
-    #         pos.pack(fill=tk.X, expand=1, side=tk.LEFT)
-    #         name.pack(fill=tk.X, expand=1, side=tk.LEFT)
-    #         points.pack(fill=tk.X, expand=1, side=tk.RIGHT)
-    #         line.pack(fill=tk.BOTH, expand=1)
-
 
 class Upcoming(ttk.Labelframe):
     def __init__(self, master=None):
@@ -84,12 +73,12 @@ class CurrentFight(ttk.LabelFrame):
 
         king_button_frame = ttk.Frame(master=king, style="Red.TFrame")
         king_button_frame.pack(side=tk.BOTTOM, fill=tk.X)
-        button_king_add_point = ttk.Button(king_button_frame, text="+1")
-        button_king_add_point.pack(side=tk.LEFT, expand=1, fill=tk.X)
-        button_king_substract_point = ttk.Button(king_button_frame, text="-1")
-        button_king_substract_point.pack(side=tk.LEFT, expand=1, fill=tk.X)
-        button_king_move_to_queue = ttk.Button(king_button_frame, text="Move to queue")
-        button_king_move_to_queue.pack(side=tk.LEFT, expand=1, fill=tk.X)
+        self.button_king_add_point = ttk.Button(king_button_frame, text="+1")
+        self.button_king_add_point.pack(side=tk.LEFT, expand=1, fill=tk.X)
+        self.button_king_substract_point = ttk.Button(king_button_frame, text="-1")
+        self.button_king_substract_point.pack(side=tk.LEFT, expand=1, fill=tk.X)
+        self.button_king_move_to_queue = ttk.Button(king_button_frame, text="Move to queue")
+        self.button_king_move_to_queue.pack(side=tk.LEFT, expand=1, fill=tk.X)
 
         vs = ttk.Label(self, text="Versus", anchor=tk.CENTER)
         vs.pack(fill=tk.BOTH, side=tk.LEFT, expand=1)
@@ -99,14 +88,14 @@ class CurrentFight(ttk.LabelFrame):
 
         contender_button_frame = ttk.Frame(master=contender)
         contender_button_frame.pack(side=tk.BOTTOM, fill=tk.X)
-        button_contender_add_point = ttk.Button(contender_button_frame, text="+1")
-        button_contender_add_point.pack(side=tk.LEFT, expand=1, fill=tk.X)
-        button_contender_substract_point = ttk.Button(contender_button_frame, text="-1")
-        button_contender_substract_point.pack(side=tk.LEFT, expand=1, fill=tk.X)
-        button_contender_back_to_queue = ttk.Button(contender_button_frame, text="Back to queue")
-        button_contender_back_to_queue.pack(side=tk.LEFT, expand=1, fill=tk.X)
-        button_contender_make_king = ttk.Button(contender_button_frame, text="Make king")
-        button_contender_make_king.pack(side=tk.LEFT, expand=1, fill=tk.X)
+        self.button_contender_add_point = ttk.Button(contender_button_frame, text="+1")
+        self.button_contender_add_point.pack(side=tk.LEFT, expand=1, fill=tk.X)
+        self.button_contender_substract_point = ttk.Button(contender_button_frame, text="-1")
+        self.button_contender_substract_point.pack(side=tk.LEFT, expand=1, fill=tk.X)
+        self.button_contender_back_to_queue = ttk.Button(contender_button_frame, text="Back to queue")
+        self.button_contender_back_to_queue.pack(side=tk.LEFT, expand=1, fill=tk.X)
+        self.button_contender_make_king = ttk.Button(contender_button_frame, text="Make king")
+        self.button_contender_make_king.pack(side=tk.LEFT, expand=1, fill=tk.X)
 
 
 class Timer(ttk.Frame):
@@ -126,11 +115,12 @@ class Scoreboard(tk.Tk):
         self.clock = 6000
         self.clock_display = tk.StringVar()
 
-
         self.grid()
         self.create_frames()
         self.columnconfigure(1, weight=1)
         self.rowconfigure(0, weight=1)
+
+        self.attach_events()
 
         parser = configparser.ConfigParser()
         parser.read('initial_values.ini')
@@ -156,6 +146,13 @@ class Scoreboard(tk.Tk):
         self.right.grid(column=1, row=0, sticky='news')
 
         self.tick_tock()
+
+    def attach_events(self):
+        self.current_fight.button_king_add_point.bind("<Button-1>", self.add_point_to_king)
+
+    def add_point_to_king(self, event):
+        self.contestants[0].score += 1
+        self.rankings.update_ranking(self.contestants)
 
     def catch_keypress(self, key):
         print(key.keycode)
