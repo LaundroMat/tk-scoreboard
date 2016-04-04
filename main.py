@@ -81,7 +81,7 @@ class CurrentFight(ttk.LabelFrame):
         self.button_king_move_to_queue = ttk.Button(king_button_frame, text="Move to queue")
         self.button_king_move_to_queue.pack(side=tk.LEFT, expand=1, fill=tk.X)
 
-        vs = ttk.Label(self, text="Versus", anchor=tk.CENTER)
+        vs = ttk.Label(self, text="versus", anchor=tk.CENTER)
         vs.pack(fill=tk.BOTH, side=tk.LEFT, expand=1)
 
         self.lbl_contender = ttk.Label(self, font=LARGE_FONT, foreground='blue', anchor=tk.CENTER)
@@ -134,8 +134,7 @@ class Scoreboard(tk.Tk):
 
         self.frame_current_fight = CurrentFight(master=self.frame_right)
         self.frame_current_fight.pack(fill=tk.BOTH, expand=1)
-        self.frame_current_fight.lbl_king.config(text=self.contestants[0].name)
-        self.frame_current_fight.lbl_contender.config(text=self.contestants[1].name)
+
 
         self.frame_upcoming = Upcoming(master=self.frame_right)
         self.frame_upcoming.pack(fill=tk.BOTH, expand=1)
@@ -159,11 +158,10 @@ class Scoreboard(tk.Tk):
         self.update()
 
     def update(self):
-        # self.draw_current_fight(self.contestants[0], self.contestants[1])
-        # self.draw_up_next(self.contestants)
         self.frame_rankings.update_ranking(self.contestants)
         self.frame_upcoming.update(self.contestants)
-
+        self.frame_current_fight.lbl_king.config(text=self.contestants[0].name)
+        self.frame_current_fight.lbl_contender.config(text=self.contestants[1].name)
 
     def catch_keypress(self, key):
         print(key.keycode)
