@@ -2,7 +2,9 @@ import configparser
 import operator
 import datetime
 import tkinter as tk
+from tkinter import messagebox
 import tkinter.ttk as ttk
+
 
 from contestant import Contestant
 
@@ -256,7 +258,8 @@ class Scoreboard(tk.Tk):
         print(key.keycode)
         if key.keycode == 27:
             # ESC pressed
-            self.destroy()
+            if messagebox.askyesno("Quit", "Really quit?"):
+                self.destroy()
         if key.keycode == 32:
             # Space pressed
             self.frame_timer.timer_action()
