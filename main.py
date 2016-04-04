@@ -68,10 +68,10 @@ class CurrentFight(ttk.LabelFrame):
 
     def create_widgets(self):
         # Use anchor=tl.CENTER and fill=tk.X to center vertically
-        king = ttk.Label(self, text="Krist Martens", anchor=tk.CENTER, font=LARGE_FONT, foreground='red')
-        king.pack(fill=tk.BOTH, expand=1, side=tk.LEFT)
+        self.lbl_king = ttk.Label(self, anchor=tk.CENTER, font=LARGE_FONT, foreground='red')
+        self.lbl_king.pack(fill=tk.BOTH, expand=1, side=tk.LEFT)
 
-        king_button_frame = ttk.Frame(master=king, style="Red.TFrame")
+        king_button_frame = ttk.Frame(master=self.lbl_king, style="Red.TFrame")
         king_button_frame.pack(side=tk.BOTTOM, fill=tk.X)
         self.button_king_add_point = ttk.Button(king_button_frame, text="+1")
         self.button_king_add_point.pack(side=tk.LEFT, expand=1, fill=tk.X)
@@ -83,10 +83,10 @@ class CurrentFight(ttk.LabelFrame):
         vs = ttk.Label(self, text="Versus", anchor=tk.CENTER)
         vs.pack(fill=tk.BOTH, side=tk.LEFT, expand=1)
 
-        contender = ttk.Label(self, text="Aster Berkhof", font=LARGE_FONT, foreground='blue', anchor=tk.CENTER)
-        contender.pack(fill=tk.BOTH, expand=1, side=tk.LEFT)
+        self.lbl_contender = ttk.Label(self, font=LARGE_FONT, foreground='blue', anchor=tk.CENTER)
+        self.lbl_contender.pack(fill=tk.BOTH, expand=1, side=tk.LEFT)
 
-        contender_button_frame = ttk.Frame(master=contender)
+        contender_button_frame = ttk.Frame(master=self.lbl_contender)
         contender_button_frame.pack(side=tk.BOTTOM, fill=tk.X)
         self.button_contender_add_point = ttk.Button(contender_button_frame, text="+1")
         self.button_contender_add_point.pack(side=tk.LEFT, expand=1, fill=tk.X)
@@ -115,6 +115,10 @@ class Scoreboard(tk.Tk):
         self.clock = 6000
         self.clock_display = tk.StringVar()
 
+        parser = configparser.ConfigParser()
+        parser.read('initial_values.ini')
+        self.contestants = [Contestant(name=name) for name in parser.get("contestants", "names").split("\n")]
+
         self.grid()
         self.create_frames()
         self.columnconfigure(1, weight=1)
@@ -122,37 +126,37 @@ class Scoreboard(tk.Tk):
 
         self.attach_events()
 
-        parser = configparser.ConfigParser()
-        parser.read('initial_values.ini')
-        self.contestants = [Contestant(name=name) for name in parser.get("contestants", "names").split("\n")]
-        self.rankings.update_ranking(self.contestants)
+        self.frame_rankings.update_ranking(self.contestants)
 
     def create_frames(self):
-        self.right = ttk.Frame(master=self)
+        self.frame_right = ttk.Frame(master=self)
 
-        self.current_fight = CurrentFight(master=self.right)
-        self.current_fight.pack(fill=tk.BOTH, expand=1)
+        self.frame_current_fight = CurrentFight(master=self.frame_right)
+        self.frame_current_fight.pack(fill=tk.BOTH, expand=1)
+        self.frame_current_fight.lbl_king.config(text=self.contestants[0].name)
+        self.frame_current_fight.lbl_contender.config(text=self.contestants[1].name)
 
-        self.upcoming = Upcoming(master=self.right)
-        self.upcoming.pack(fill=tk.BOTH, expand=1)
 
-        self.timer = Timer(master=self.right)
-        self.timer.pack()
-        self.timer.display.config(textvariable=self.clock_display)
+        self.frame_upcoming = Upcoming(master=self.frame_right)
+        self.frame_upcoming.pack(fill=tk.BOTH, expand=1)
 
-        self.rankings = Rankings(master=self)
-        self.rankings.grid(column=0, row=0, rowspan=3, sticky=tk.NW)
+        self.frame_timer = Timer(master=self.frame_right)
+        self.frame_timer.pack()
+        self.frame_timer.display.config(textvariable=self.clock_display)
 
-        self.right.grid(column=1, row=0, sticky='news')
+        self.frame_rankings = Rankings(master=self)
+        self.frame_rankings.grid(column=0, row=0, rowspan=3, sticky=tk.NW)
+
+        self.frame_right.grid(column=1, row=0, sticky='news')
 
         self.tick_tock()
 
     def attach_events(self):
-        self.current_fight.button_king_add_point.bind("<Button-1>", self.add_point_to_king)
+        self.frame_current_fight.button_king_add_point.bind("<Button-1>", self.add_point_to_king)
 
     def add_point_to_king(self, event):
         self.contestants[0].score += 1
-        self.rankings.update_ranking(self.contestants)
+        self.frame_rankings.update_ranking(self.contestants)
 
     def catch_keypress(self, key):
         print(key.keycode)
