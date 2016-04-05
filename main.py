@@ -2,6 +2,7 @@ import configparser
 import operator
 import datetime
 import tkinter as tk
+from collections import OrderedDict
 from tkinter import messagebox
 import tkinter.ttk as ttk
 
@@ -254,7 +255,6 @@ class Scoreboard(tk.Tk):
             self.challenger_name.set(self.contestants[1].name)
 
     def catch_keypress(self, key):
-        print(key.keycode)
         if key.keycode == 27:
             # ESC pressed
             if messagebox.askyesno("Quit", "Really quit?"):
@@ -263,21 +263,86 @@ class Scoreboard(tk.Tk):
             # Space pressed
             self.frame_timer.timer_action()
 
-    def open_admin(self):
-        new_window = tk.Toplevel(self)
-        tree = ttk.Treeview(master=new_window)
-        tree["columns"]=("contestant", "score", "is_king", 'is_contender')
-        tree.column("contestant", width=100)
-        tree.column("score", width=100)
-        tree.heading("contestant", text="Contestant")
-        tree.heading("score", text="Score")
-        tree.heading("is_king", text="Is king?")
-        tree.heading("is_contender", text="Is contender?")
 
-        tree.insert("" , 0,    text="Line 1", values=("1A","1b"))
+class Admin(object):
+    def __init__(self, contestants, *args, **kwargs):
+        self.window = tk.Toplevel()
+        self.contestants = contestants
 
-        tree.grid()
-        tree.focus_force()
+        self.currently_editing = 0
+
+        self.frames = {
+            'list_players': ttk.LabelFrame(master=self.window, text="Players"),
+            'edit_player': ttk.Frame(master=self.window)
+        }
+
+        self.tree = ttk.Treeview(master=self.frames['list_players'])
+
+        self.edit_player_widgets = OrderedDict({
+            'name': {
+                'lbl': ttk.Label(master=self.frames['edit_player'], text="Name"),
+                'entry': ttk.Entry(master=self.frames['edit_player'])
+            },
+            'pos': {
+                'lbl': ttk.Label(master=self.frames['edit_player'], text="Position in queue"),
+                'entry': ttk.Entry(master=self.frames['edit_player'])
+            },
+            'score': {
+                'lbl': ttk.Label(master=self.frames['edit_player'], text="Score"),
+                'entry': ttk.Entry(master=self.frames['edit_player'])
+            }
+        })
+
+        for widget in self.edit_player_widgets.values():
+            widget['lbl'].pack(side=tk.LEFT)
+            widget['entry'].pack(side=tk.LEFT)
+
+        self.button_save = ttk.Button(text="Save", master=self.frames['edit_player'])
+        self.button_save.pack(side=tk.LEFT)
+        self.button_save.bind("<Button-1>", self.save_player_data)
+
+        self.build_player_list()
+
+        self.frames['list_players'].grid()
+        self.frames['edit_player'].grid()
+
+        # self.focus_force() doesn't work
+
+    def build_player_list(self):
+        self.tree["columns"]=("position", "score")
+        self.tree.column("position", width=100)
+        self.tree.column("score", width=100)
+        self.tree.heading("position", text="Position in queue")
+        self.tree.heading("score", text="Score")
+
+        for index, player in reversed(list(enumerate(self.contestants))):
+            self.tree.insert("" , 0, text=player.name, values=(index, player.score))
+
+        self.tree.bind("<Double-1>", self.edit_player)
+
+        self.tree.grid()
+
+    def edit_player(self, event):
+        self.currently_editing = self.tree.selection()[0]
+        pos_in_queue = self.tree.item(self.currently_editing, "values")[0]
+        score = self.tree.item(self.currently_editing, "values")[1]
+        contestant = self.contestants[int(pos_in_queue)]
+
+        for widget_set in self.edit_player_widgets.keys():
+            self.edit_player_widgets[widget_set]['entry'].delete(0, "end")
+
+        self.edit_player_widgets['name']['entry'].insert(0, contestant.name)
+        self.edit_player_widgets['score']['entry'].insert(0, contestant.score)
+        self.edit_player_widgets['pos']['entry'].insert(0, pos_in_queue)
+
+    def save_player_data(self, event):
+        # TODO: Give data back to App! (maybe via database?)
+        old_pos = int(self.tree.item(self.currently_editing, "values")[0])
+        new_pos = int(self.edit_player_widgets['pos']['entry'].get())
+
+        self.contestants[old_pos], self.contestants[new_pos] = self.contestants[new_pos], self.contestants[old_pos]
+        self.build_player_list()
+
 
 
 app = Scoreboard()
@@ -294,7 +359,10 @@ style.configure('TLabelframe.Label', foreground='black')
 
 
 app.attributes("-fullscreen", True)
-app.open_admin()
+
+Admin(contestants=app.contestants)
+# TODO: use return value from admin to rebuild app
+
 app.bind_all("<Key>", app.catch_keypress)
 
 app.mainloop()
