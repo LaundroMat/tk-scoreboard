@@ -50,6 +50,7 @@ class Upcoming(ttk.Labelframe):
         self.config(text="Upcoming contenders")
         self.rows = []
         self.update(contestants)
+        self.selected = None
 
     def update(self, contestants=[]):
         for w in self.rows:
@@ -69,8 +70,9 @@ class Upcoming(ttk.Labelframe):
         print("Selectorized ", index)
         # Clear other selection
         for w in self.rows:
-            w.configure(background="white")
-        self.rows[index].configure(background="red")
+            w.configure(background="white") #TODO: find how to get bg color 
+        self.rows[index].configure(background="grey")
+        self.selected = index
 
 
 class CurrentFight(ttk.LabelFrame):
@@ -227,6 +229,9 @@ class Scoreboard(tk.Tk):
         self.frame_timer.button_substract_5_seconds.bind("<Button-1>", self.frame_timer.substract_5_seconds)
 
 
+        self.bind_all("<Up>", self.move_row_up)
+        self.bind_all("<Down>", self.move_row_down)
+
     def add_point_to_king(self, event):
         self.contestants[0].score += 1
         self.update(update_current_fight=False)
@@ -254,6 +259,14 @@ class Scoreboard(tk.Tk):
     def move_challenger_back_to_queue(self, event):
         self.contestants += [self.contestants.pop(1)]
         self.update()
+
+    def move_row_up(self, key):
+        print("Moving up ", self.frame_upcoming.selected)
+        self.contestants[self.frame_upcoming.selected], self.contestants[self.frame_upcoming.selected-1] = self.contestants[self.frame_upcoming.selected-1], self.contestants[self.frame_upcoming.selected]
+        self.update(update_rankings=False, update_upcoming=True, update_current_fight=False)
+
+    def move_row_down(self, key):
+        print("Moving down ", self.frame_upcoming.selected)
 
     def update(self, update_rankings=True, update_upcoming=True, update_current_fight=True):
         if update_rankings:
