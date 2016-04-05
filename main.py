@@ -1,10 +1,11 @@
 import configparser
 import operator
 import datetime
+from functools import partial
+
 import tkinter as tk
 from tkinter import messagebox
 import tkinter.ttk as ttk
-
 
 from contestant import Contestant
 
@@ -47,10 +48,11 @@ class Upcoming(ttk.Labelframe):
     def __init__(self, master=None, contestants=[]):
         super(Upcoming, self).__init__(master)
         self.config(text="Upcoming contenders")
+        self.rows = []
         self.update(contestants)
 
     def update(self, contestants=[]):
-        for w in self.winfo_children():
+        for w in self.rows:
             w.destroy()
 
         for index, player in enumerate(contestants[2:]):
@@ -59,7 +61,16 @@ class Upcoming(ttk.Labelframe):
                 w.configure(font=LARGE_FONT)
             else:
                 w.configure(font=REGULAR_FONT)
+            w.bind('<Button-1>', partial(self.widget_selected, index))
             w.pack(fill=tk.X, expand=1)
+            self.rows.append(w)
+
+    def widget_selected(self, index, event):
+        print("Selectorized ", index)
+        # Clear other selection
+        for w in self.rows:
+            w.configure(background="white")
+        self.rows[index].configure(background="red")
 
 
 class CurrentFight(ttk.LabelFrame):
