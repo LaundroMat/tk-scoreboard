@@ -16,7 +16,6 @@ class Rankings(ttk.Labelframe):
     def __init__(self, master=None, contestants=None, *args, **kwargs):
         super(Rankings, self).__init__(master, *args, **kwargs)
         self.config(text="Ranking")
-        # self.create_widgets()
         self.update_ranking(contestants)
 
     def update_ranking(self, contestants):
@@ -48,34 +47,41 @@ class Upcoming(ttk.Labelframe):
     def __init__(self, master=None, contestants=[]):
         super(Upcoming, self).__init__(master)
         self.config(text="Upcoming contenders")
+        self.player_selected = None
         self.rows = []
         self.update(contestants)
-        self.player_selected = None
 
     def update(self, contestants=[]):
         for w in self.rows:
             w.destroy()
 
-        for index, player in enumerate(contestants[2:]):
+        self.rows = []
+
+        for row, player in enumerate(contestants[2:]):
             w = ttk.Label(self, text=player.name, anchor=tk.NW)
-            if index < 3:
+            if row < 1:
                 w.configure(font=LARGE_FONT)
             else:
                 w.configure(font=REGULAR_FONT)
-            w.bind('<Button-1>', partial(self.widget_selected, index))
+            w.bind('<Button-1>', partial(self.widget_selected, row))    
             w.pack(fill=tk.X, expand=1)
             self.rows.append(w)
 
-    def widget_selected(self, index, event):
+        if self.player_selected:
+            self.rows[self.player_selected-2].configure(background="red")
+
+
+    def widget_selected(self, row, event):
         # Clear selections
         for w in self.rows:
             w.configure(background="white")
-        if self.player_selected == index:
-            # clear selection again
+
+        if self.player_selected == row + 2: # Add 2 because we start from [2:]
+            # Unselect player
             self.player_selected = None
         else:
-            self.rows[index].configure(background="red")
-            self.player_selected = index
+            self.rows[row].configure(background="red")
+            self.player_selected = row+2
 
 
 class CurrentFight(ttk.LabelFrame):
@@ -276,7 +282,7 @@ class Scoreboard(tk.Tk):
             self.challenger_name.set(self.contestants[1].name)
 
     def catch_keypress(self, key):
-        print(key.keycode)
+        # print(key.keycode)
         if key.keycode == 27:
             # ESC pressed
             if messagebox.askyesno("Quit", "Really quit?"):
@@ -284,9 +290,25 @@ class Scoreboard(tk.Tk):
         if key.keycode == 32:
             # Space pressed
             self.frame_timer.timer_action()
-        if key.keycode == 38:
-            print('Moving up')
 
+        if key.keycode == 38:
+            # Arrow up
+            # Don't do anything if this is at the start of the list
+            if not self.frame_upcoming.player_selected < 3:
+                self.contestants[self.frame_upcoming.player_selected], self.contestants[self.frame_upcoming.player_selected-1]=self.contestants[self.frame_upcoming.player_selected-1], self.contestants[self.frame_upcoming.player_selected]
+                self.frame_upcoming.player_selected = self.frame_upcoming.player_selected - 1
+                self.frame_upcoming.rows[self.frame_upcoming.player_selected-2].configure(style='Selected.TLabel')
+                self.update()
+
+        if key.keycode == 40:
+            # Arrow down
+            try:
+                self.contestants[self.frame_upcoming.player_selected], self.contestants[self.frame_upcoming.player_selected+1]=self.contestants[self.frame_upcoming.player_selected+1], self.contestants[self.frame_upcoming.player_selected]
+                self.frame_upcoming.player_selected = self.frame_upcoming.player_selected + 1
+                self.update()
+            except IndexError:
+                # Reached end of list
+                pass
 
     def open_admin(self):
         new_window = tk.Toplevel(self)
@@ -314,6 +336,7 @@ style.configure('Timer.TLabel', font=LARGE_FONT, foreground='red')
 style.configure('ReverseTimer.TLabel', font=LARGE_FONT, foreground='grey')
 style.configure('Red.TFrame', background='red')
 style.configure('Red.TLabel', background='red')
+style.configure('Selected.TLabel', background='red')
 style.configure('TLabelframe', padding=12)
 style.configure('TLabelframe.Label', foreground='black')
 
