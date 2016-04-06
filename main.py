@@ -50,6 +50,7 @@ class Upcoming(ttk.Labelframe):
         self.config(text="Upcoming contenders")
         self.rows = []
         self.update(contestants)
+        self.player_selected = None
 
     def update(self, contestants=[]):
         for w in self.rows:
@@ -66,11 +67,15 @@ class Upcoming(ttk.Labelframe):
             self.rows.append(w)
 
     def widget_selected(self, index, event):
-        print("Selectorized ", index)
-        # Clear other selection
+        # Clear selections
         for w in self.rows:
             w.configure(background="white")
-        self.rows[index].configure(background="red")
+        if self.player_selected == index:
+            # clear selection again
+            self.player_selected = None
+        else:
+            self.rows[index].configure(background="red")
+            self.player_selected = index
 
 
 class CurrentFight(ttk.LabelFrame):
@@ -279,6 +284,9 @@ class Scoreboard(tk.Tk):
         if key.keycode == 32:
             # Space pressed
             self.frame_timer.timer_action()
+        if key.keycode == 38:
+            print('Moving up')
+
 
     def open_admin(self):
         new_window = tk.Toplevel(self)
