@@ -15,7 +15,7 @@ LARGE_FONT = ('Helvetica', '36')
 REGULAR_FONT = ('Helvetica', '16')
 SMALL_FONT = ('Helvetica', '12')
 
-logging.basicConfig(filename='game-{dte}.log'.format(dte=str(datetime.datetime.now().strftime("%d%b%Y-%H%M%S"))),level=logging.INFO)
+logging.basicConfig(format='%(asctime)s %(message)s', filename='game-{dte}.log'.format(dte=str(datetime.datetime.now().strftime("%d%b%Y-%H%M%S"))),level=logging.INFO)
 
 class Rankings(ttk.LabelFrame):
     def __init__(self, master=None, contestants=None, *args, **kwargs):
@@ -303,7 +303,7 @@ class Scoreboard(tk.Tk):
         self.contestants[1].score -= 1
 
         try:
-            logging.info("{name} (the current challenger) haslost a point against king {king} and now has {score} point(s).".format(
+            logging.info("{name} (the current challenger) has lost a point against king {king} and now has {score} point(s).".format(
                 name=self.contestants[1].name, king=self.contestants[0].name, score=self.contestants[1].score))
         except e:
             print(e)
@@ -341,6 +341,15 @@ class Scoreboard(tk.Tk):
         if key.keycode == 27:
             # ESC pressed
             if messagebox.askyesno("Quit", "Really quit?"):
+                logging.info("=== FINAL RESULTS ===")
+                ranking = sorted(self.contestants.copy(), key=operator.attrgetter('score'), reverse=True)
+                player_position = 1
+                previous_score = ranking[0].score
+                for player in ranking:
+                    if player.score < previous_score:
+                        player_position += 1
+                    logging.info("{pos}.\t{name}\t{score}".format(pos=player_position, name=player.name, score=player.score))
+
                 self.destroy()
         if key.keycode == 32:
             # Space pressed
