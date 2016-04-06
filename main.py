@@ -310,23 +310,6 @@ class Scoreboard(tk.Tk):
                 # Reached end of list
                 pass
 
-    def open_admin(self):
-        new_window = tk.Toplevel(self)
-        tree = ttk.Treeview(master=new_window)
-        tree["columns"]=("contestant", "score", "is_king", 'is_contender')
-        tree.column("contestant", width=100)
-        tree.column("score", width=100)
-        tree.heading("contestant", text="Contestant")
-        tree.heading("score", text="Score")
-        tree.heading("is_king", text="Is king?")
-        tree.heading("is_contender", text="Is contender?")
-
-        tree.insert("" , 0,    text="Line 1", values=("1A","1b"))
-
-        tree.grid()
-        tree.focus_force()
-
-
 app = Scoreboard()
 
 style = ttk.Style(master=app)
@@ -342,7 +325,6 @@ style.configure('TLabelframe.Label', foreground='black')
 
 
 app.attributes("-fullscreen", True)
-app.open_admin()
 app.bind_all("<Key>", app.catch_keypress)
 
 app.mainloop()
