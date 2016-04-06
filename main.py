@@ -81,10 +81,13 @@ class CurrentFight(ttk.LabelFrame):
 
     def create_widgets(self):
         # Use anchor=tl.CENTER and fill=tk.X to center vertically
-        self.lbl_king = ttk.Label(self, anchor=tk.CENTER, font=LARGE_FONT, foreground='red')
-        self.lbl_king.pack(fill=tk.BOTH, expand=1, side=tk.LEFT)
+        self.frame_king = ttk.Frame(master=self)
+        self.frame_king.pack(fill=tk.BOTH, expand=1, side=tk.LEFT)
 
-        king_button_frame = ttk.Frame(master=self.lbl_king, style="Red.TFrame")
+        self.lbl_king = ttk.Label(self.frame_king, anchor=tk.CENTER, font=LARGE_FONT, foreground='red')
+        self.lbl_king.pack()
+
+        king_button_frame = ttk.Frame(master=self.frame_king, style="Red.TFrame")
         king_button_frame.pack(side=tk.BOTTOM, fill=tk.X)
         self.button_king_add_point = ttk.Button(king_button_frame, text="+1")
         self.button_king_add_point.pack(side=tk.LEFT, expand=1, fill=tk.X)
@@ -96,10 +99,13 @@ class CurrentFight(ttk.LabelFrame):
         vs = ttk.Label(self, text="versus", anchor=tk.CENTER)
         vs.pack(fill=tk.BOTH, side=tk.LEFT, expand=1)
 
-        self.lbl_challenger = ttk.Label(self, font=LARGE_FONT, foreground='blue', anchor=tk.CENTER)
-        self.lbl_challenger.pack(fill=tk.BOTH, expand=1, side=tk.LEFT)
+        self.frame_challenger = ttk.Frame(master=self)
+        self.frame_challenger.pack(fill=tk.BOTH, expand=1, side=tk.LEFT)
 
-        challenger_button_frame = ttk.Frame(master=self.lbl_challenger)
+        self.lbl_challenger = ttk.Label(self.frame_challenger, font=LARGE_FONT, foreground='blue', anchor=tk.CENTER)
+        self.lbl_challenger.pack()
+
+        challenger_button_frame = ttk.Frame(master=self.frame_challenger)
         challenger_button_frame.pack(side=tk.BOTTOM, fill=tk.X)
         self.button_challenger_add_point = ttk.Button(challenger_button_frame, text="+1")
         self.button_challenger_add_point.pack(side=tk.LEFT, expand=1, fill=tk.X)
@@ -205,8 +211,8 @@ class Scoreboard(tk.Tk):
         self.frame_current_fight.lbl_king.config(textvariable=self.king_name)
         self.frame_current_fight.lbl_challenger.config(textvariable=self.challenger_name)
 
-        self.frame_timer = Timer(master=self.frame_right, time_left=time_left)
-        self.frame_timer.pack()
+        self.frame_timer = Timer(master=self, time_left=time_left)
+        self.frame_timer.grid(column=0, row=1)
 
         self.frame_rankings = Rankings(master=self)
         self.frame_rankings.grid(column=0, row=0, rowspan=3, sticky=tk.NW)
