@@ -2,6 +2,8 @@ import configparser
 import operator
 import datetime
 from functools import partial
+import logging
+import sys
 
 import tkinter as tk
 from tkinter import messagebox
@@ -12,6 +14,8 @@ from contestant import Contestant
 LARGE_FONT = ('Helvetica', '36')
 REGULAR_FONT = ('Helvetica', '16')
 SMALL_FONT = ('Helvetica', '12')
+
+logging.basicConfig(filename='game-{dte}.log'.format(dte=str(datetime.datetime.now().strftime("%d%b%Y-%H%M%S"))),level=logging.INFO)
 
 class Rankings(ttk.LabelFrame):
     def __init__(self, master=None, contestants=None, *args, **kwargs):
@@ -252,22 +256,59 @@ class Scoreboard(tk.Tk):
 
     def add_point_to_king(self, event):
         self.contestants[0].score += 1
+
+        try:
+            logging.info("{name} (currently king) scores a point and has {score} point(s) now.".format(
+                name=self.contestants[0].name, score=self.contestants[0].score))
+        except:
+            print(sys.exc_info()[0])
+
         self.update(update_current_fight=False)
+
 
     def substract_point_for_king(self, event):
         self.contestants[0].score -= 1
+
+        try:
+            logging.info("{name} (currently king) lost a point and has {score} point(s) now.".format(
+                name=self.contestants[0].name, score=self.contestants[0].score))
+        except e:
+            print(e)
+
         self.update(update_current_fight=False)
 
     def move_king_to_queue(self, event):
         self.contestants += [self.contestants.pop(0)]
+
+        try:
+            logging.info("{name} is no longer king! {new} is the new king.".format(
+                name=self.contestants[-1].name, new=self.contestants[0].name))
+        except e:
+            print(e)
+
         self.update()
 
     def add_point_for_challenger(self, event):
         self.contestants[1].score += 1
+
+        try:
+            logging.info("{name} (the current challenger) has scored a point against king {king} and now has {score} point(s).".format(
+                name=self.contestants[1].name, king=self.contestants[0].name, score=self.contestants[1].score))
+        except e:
+            print(e)
+
         self.update(update_current_fight=False)
 
     def substract_point_for_challenger(self, event):
         self.contestants[1].score -= 1
+
+        try:
+            logging.info("{name} (the current challenger) haslost a point against king {king} and now has {score} point(s).".format(
+                name=self.contestants[1].name, king=self.contestants[0].name, score=self.contestants[1].score))
+        except e:
+            print(e)
+
+
         self.update(update_current_fight=False)
 
     def make_challenger_king(self, event):
@@ -276,6 +317,14 @@ class Scoreboard(tk.Tk):
 
     def move_challenger_back_to_queue(self, event):
         self.contestants += [self.contestants.pop(1)]
+
+        try:
+            logging.info("{name} lost the battle against the king and has returned to the queue!.".format(
+                name=self.contestants[-1].name))
+        except e:
+            print(e)
+
+
         self.update()
 
     def update(self, update_rankings=True, update_upcoming=True, update_current_fight=True):
