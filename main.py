@@ -13,7 +13,7 @@ LARGE_FONT = ('Helvetica', '36')
 REGULAR_FONT = ('Helvetica', '16')
 SMALL_FONT = ('Helvetica', '12')
 
-class Rankings(ttk.Labelframe):
+class Rankings(ttk.LabelFrame):
     def __init__(self, master=None, contestants=None, *args, **kwargs):
         super(Rankings, self).__init__(master, *args, **kwargs)
         self.config(text="Ranking")
@@ -33,13 +33,13 @@ class Rankings(ttk.Labelframe):
                     player_position += 1
 
                 line = ttk.Frame(self)
+                line.pack(fill=tk.BOTH, expand=1)
                 lbl_position = ttk.Label(line, text="{0}. ".format(str(player_position)), anchor=tk.NW)
                 lbl_position.pack(fill=tk.X, side=tk.LEFT)
                 lbl_name = ttk.Label(line, text=player.name, anchor=tk.W)
                 lbl_name.pack(fill=tk.X, expand=1, side=tk.LEFT)
                 lbl_score = ttk.Label(line, text=str(player.score), anchor=tk.NE, padding=[5, 0, 0, 0])
                 lbl_score.pack(fill=tk.X, expand=1, side=tk.RIGHT)
-                line.pack(fill=tk.BOTH, expand=1)
 
                 previous_score = player.score
 
@@ -69,19 +69,19 @@ class Upcoming(ttk.Labelframe):
             self.rows.append(w)
 
         if self.player_selected:
-            self.rows[self.player_selected-2].configure(background="red")
+            self.rows[self.player_selected-2].configure(background='grey')
 
 
     def widget_selected(self, row, event):
         # Clear selections
         for w in self.rows:
-            w.configure(background="white")
+            w.configure(background="black")
 
         if self.player_selected == row + 2: # Add 2 because we start from [2:]
             # Unselect player
             self.player_selected = None
         else:
-            self.rows[row].configure(background="red")
+            self.rows[row].configure(background='grey')
             self.player_selected = row+2
 
 
@@ -102,7 +102,7 @@ class CurrentFight(ttk.LabelFrame):
 
         king_button_frame = ttk.Frame(master=self.frame_king)
         king_button_frame.pack(side=tk.BOTTOM, fill=tk.X)
-        self.button_king_add_point = ttk.Button(king_button_frame, text="+1")
+        self.button_king_add_point = ttk.Button(king_button_frame, text="+1", style='MyButton.TButton')
         self.button_king_add_point.pack(side=tk.LEFT, expand=1, fill=tk.X)
         self.button_king_substract_point = ttk.Button(king_button_frame, text="-1")
         self.button_king_substract_point.pack(side=tk.LEFT, expand=1, fill=tk.X)
@@ -215,7 +215,15 @@ class Scoreboard(tk.Tk):
 
 
     def create_frames(self, time_left=0):
+        self.frame_rankings = Rankings(master=self)
+        self.frame_rankings.grid(column=0, row=0, sticky=tk.N, ipadx=32)
+        self.grid_columnconfigure(0, weight=1)
+
+        self.frame_timer = Timer(master=self, time_left=time_left)
+        self.frame_timer.grid(column=0, row=1)
+
         self.frame_right = ttk.Frame(master=self)
+        self.frame_right.grid(column=1, row=0, sticky='news', rowspan=2)
 
         self.frame_current_fight = CurrentFight(master=self.frame_right)
         self.frame_current_fight.pack(fill=tk.BOTH, expand=1)
@@ -225,13 +233,8 @@ class Scoreboard(tk.Tk):
         self.frame_current_fight.lbl_king.config(textvariable=self.king_name)
         self.frame_current_fight.lbl_challenger.config(textvariable=self.challenger_name)
 
-        self.frame_timer = Timer(master=self, time_left=time_left)
-        self.frame_timer.grid(column=0, row=1)
 
-        self.frame_rankings = Rankings(master=self)
-        self.frame_rankings.grid(column=0, row=0, rowspan=1, sticky=tk.NW)
 
-        self.frame_right.grid(column=1, row=0, sticky='news', rowspan=2)
 
     def attach_events(self):
         self.frame_current_fight.button_king_add_point.bind("<Button-1>", self.add_point_to_king)
@@ -294,16 +297,16 @@ class Scoreboard(tk.Tk):
             # Space pressed
             self.frame_timer.timer_action()
 
-        if key.keycode == 38:
+        if key.keycode == 38 and self.frame_upcoming.player_selected:
             # Arrow up
             # Don't do anything if this is at the start of the list
             if not self.frame_upcoming.player_selected < 3:
                 self.contestants[self.frame_upcoming.player_selected], self.contestants[self.frame_upcoming.player_selected-1]=self.contestants[self.frame_upcoming.player_selected-1], self.contestants[self.frame_upcoming.player_selected]
                 self.frame_upcoming.player_selected = self.frame_upcoming.player_selected - 1
-                self.frame_upcoming.rows[self.frame_upcoming.player_selected-2].configure(style='Selected.TLabel')
+                self.frame_upcoming.rows[self.frame_upcoming.player_selected-2].configure(background="grey")
                 self.update()
 
-        if key.keycode == 40:
+        if key.keycode == 40 and self.frame_upcoming.player_selected:
             # Arrow down
             try:
                 self.contestants[self.frame_upcoming.player_selected], self.contestants[self.frame_upcoming.player_selected+1]=self.contestants[self.frame_upcoming.player_selected+1], self.contestants[self.frame_upcoming.player_selected]
@@ -314,17 +317,23 @@ class Scoreboard(tk.Tk):
                 pass
 
 app = Scoreboard()
+app.configure(background='black')
+
+# >>> s = ttk.Style()
+# >>> s.theme_names()
+# ('winnative', 'clam', 'alt', 'default', 'classic', 'vista', 'xpnative')
 
 style = ttk.Style(master=app)
-style.configure('.', font=REGULAR_FONT, foreground='black')
+# style.theme_use("xpnative")
+style.configure('.', font=REGULAR_FONT, foreground='white', background='black')
 style.configure('TLabel', font=REGULAR_FONT)
-style.configure('Timer.TLabel', font=LARGE_FONT, foreground='red')
-style.configure('ReverseTimer.TLabel', font=LARGE_FONT, foreground='grey')
-style.configure('Red.TFrame', background='red')
-style.configure('Red.TLabel', background='red')
-style.configure('Selected.TLabel', background='red')
-style.configure('TLabelframe', padding=12)
-style.configure('TLabelframe.Label', foreground='black')
+style.configure('TButton', foreground="grey")
+
+style.configure('Timer.TLabel', font=("Courier New", 40), foreground='red')
+style.configure('ReverseTimer.TLabel', font=("Courier New", 40), foreground='black')
+style.configure('Selected.TLabel', background='grey')
+style.configure('TLabelFrame', padding=12)
+style.configure('TLabelframe.Label', foreground='#FFDF00')
 
 
 app.attributes("-fullscreen", True)
