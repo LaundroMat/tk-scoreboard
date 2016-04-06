@@ -11,6 +11,7 @@ from contestant import Contestant
 
 LARGE_FONT = ('Helvetica', '36')
 REGULAR_FONT = ('Helvetica', '16')
+SMALL_FONT = ('Helvetica', '12')
 
 class Rankings(ttk.Labelframe):
     def __init__(self, master=None, contestants=None, *args, **kwargs):
@@ -95,10 +96,11 @@ class CurrentFight(ttk.LabelFrame):
         self.frame_king = ttk.Frame(master=self)
         self.frame_king.pack(fill=tk.BOTH, expand=1, side=tk.LEFT)
 
+        ttk.Label(self.frame_king, font=SMALL_FONT, anchor=tk.CENTER, foreground='red', text="King".upper()).pack()
         self.lbl_king = ttk.Label(self.frame_king, anchor=tk.CENTER, font=LARGE_FONT, foreground='red')
-        self.lbl_king.pack()
+        self.lbl_king.pack(pady=32)
 
-        king_button_frame = ttk.Frame(master=self.frame_king, style="Red.TFrame")
+        king_button_frame = ttk.Frame(master=self.frame_king)
         king_button_frame.pack(side=tk.BOTTOM, fill=tk.X)
         self.button_king_add_point = ttk.Button(king_button_frame, text="+1")
         self.button_king_add_point.pack(side=tk.LEFT, expand=1, fill=tk.X)
@@ -113,8 +115,9 @@ class CurrentFight(ttk.LabelFrame):
         self.frame_challenger = ttk.Frame(master=self)
         self.frame_challenger.pack(fill=tk.BOTH, expand=1, side=tk.LEFT)
 
+        ttk.Label(self.frame_challenger, font=SMALL_FONT, anchor=tk.CENTER, foreground='blue', text="Challenger".upper()).pack()
         self.lbl_challenger = ttk.Label(self.frame_challenger, font=LARGE_FONT, foreground='blue', anchor=tk.CENTER)
-        self.lbl_challenger.pack()
+        self.lbl_challenger.pack(pady=32)
 
         challenger_button_frame = ttk.Frame(master=self.frame_challenger)
         challenger_button_frame.pack(side=tk.BOTTOM, fill=tk.X)
@@ -226,9 +229,9 @@ class Scoreboard(tk.Tk):
         self.frame_timer.grid(column=0, row=1)
 
         self.frame_rankings = Rankings(master=self)
-        self.frame_rankings.grid(column=0, row=0, rowspan=3, sticky=tk.NW)
+        self.frame_rankings.grid(column=0, row=0, rowspan=1, sticky=tk.NW)
 
-        self.frame_right.grid(column=1, row=0, sticky='news')
+        self.frame_right.grid(column=1, row=0, sticky='news', rowspan=2)
 
     def attach_events(self):
         self.frame_current_fight.button_king_add_point.bind("<Button-1>", self.add_point_to_king)
