@@ -79,13 +79,13 @@ class Upcoming(ttk.Labelframe):
     def widget_selected(self, row, event):
         # Clear selections
         for w in self.rows:
-            w.configure(background="black")
+            w.configure(style='Unselected.TLabel')
 
         if self.player_selected == row + 2: # Add 2 because we start from [2:]
             # Unselect player
             self.player_selected = None
         else:
-            self.rows[row].configure(background='grey')
+            self.rows[row].configure(style='Selected.TLabel')
             self.player_selected = row+2
 
 
@@ -375,7 +375,7 @@ class Scoreboard(tk.Tk):
                 pass
 
 app = Scoreboard()
-app.configure(background='black')
+# app.configure(background='black')
 
 # >>> s = ttk.Style()
 # >>> s.theme_names()
@@ -383,15 +383,18 @@ app.configure(background='black')
 
 style = ttk.Style(master=app)
 # style.theme_use("xpnative")
-style.configure('.', font=REGULAR_FONT, foreground='white', background='black')
+style.configure('.', font=REGULAR_FONT, foreground='black')
 style.configure('TLabel', font=REGULAR_FONT)
 style.configure('TButton', foreground="grey")
-
+# bg =style.lookup('TLabel', 'background')
+# print(bg)
+# print(app.winfo_rgb(bg))
 style.configure('Timer.TLabel', font=("Courier New", 40), foreground='red')
 style.configure('ReverseTimer.TLabel', font=("Courier New", 40), foreground='black')
-style.configure('Selected.TLabel', background='grey')
-style.configure('TLabelFrame', padding=12)
-style.configure('TLabelframe.Label', foreground='#FFDF00')
+style.configure('Selected.TLabel', background='#A0A0A0')
+style.configure('Unselected.TLabel', background='#F0F0F0')
+style.configure('TLabelFrame', padding=12, background=(61680, 61680, 61680))
+style.configure('TLabelframe.Label', foreground='maroon')
 
 
 app.attributes("-fullscreen", True)
