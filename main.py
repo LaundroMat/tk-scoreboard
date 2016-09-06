@@ -73,7 +73,7 @@ class Upcoming(ttk.Labelframe):
             self.rows.append(w)
 
         if self.player_selected:
-            self.rows[self.player_selected-2].configure(background='red')
+            self.rows[self.player_selected-2].configure(style='Selected.TLabel')
 
 
     def widget_selected(self, row, event):
@@ -383,7 +383,7 @@ app.configure(background='black')
 
 style = ttk.Style(master=app)
 # style.theme_use("xpnative")
-style.configure('.', font=REGULAR_FONT, foreground='black')
+style.configure('.', font=REGULAR_FONT, foreground='white', background='black')
 style.configure('TLabel', font=REGULAR_FONT)
 style.configure('TButton', foreground="grey")
 # bg =style.lookup('TLabel', 'background')
@@ -391,10 +391,10 @@ style.configure('TButton', foreground="grey")
 # print(app.winfo_rgb(bg))
 style.configure('Timer.TLabel', font=("Courier New", 40), foreground='red')
 style.configure('ReverseTimer.TLabel', font=("Courier New", 40), foreground='black')
-style.configure('Selected.TLabel', background='red')
+style.configure('Selected.TLabel', background='white', foreground="black")
 style.configure('Unselected.TLabel', background='black')
 style.configure('TLabelFrame.Label', padding=12, background='black')
-style.configure('TLabelframe.Label', foreground='maroon')
+style.configure('TLabelframe.Label', foreground='grey')
 
 
 app.attributes("-fullscreen", True)
