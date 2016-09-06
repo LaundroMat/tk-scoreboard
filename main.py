@@ -73,7 +73,7 @@ class Upcoming(ttk.Labelframe):
             self.rows.append(w)
 
         if self.player_selected:
-            self.rows[self.player_selected-2].configure(background='grey')
+            self.rows[self.player_selected-2].configure(background='red')
 
 
     def widget_selected(self, row, event):
@@ -375,7 +375,7 @@ class Scoreboard(tk.Tk):
                 pass
 
 app = Scoreboard()
-# app.configure(background='black')
+app.configure(background='black')
 
 # >>> s = ttk.Style()
 # >>> s.theme_names()
@@ -391,9 +391,9 @@ style.configure('TButton', foreground="grey")
 # print(app.winfo_rgb(bg))
 style.configure('Timer.TLabel', font=("Courier New", 40), foreground='red')
 style.configure('ReverseTimer.TLabel', font=("Courier New", 40), foreground='black')
-style.configure('Selected.TLabel', background='#A0A0A0')
-style.configure('Unselected.TLabel', background='#F0F0F0')
-style.configure('TLabelFrame', padding=12, background=(61680, 61680, 61680))
+style.configure('Selected.TLabel', background='red')
+style.configure('Unselected.TLabel', background='black')
+style.configure('TLabelFrame.Label', padding=12, background='black')
 style.configure('TLabelframe.Label', foreground='maroon')
 
 
