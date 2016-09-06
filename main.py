@@ -15,7 +15,10 @@ LARGE_FONT = ('Helvetica', '36')
 REGULAR_FONT = ('Helvetica', '16')
 SMALL_FONT = ('Helvetica', '12')
 
-logging.basicConfig(format='%(asctime)s %(message)s', filename='game-{dte}.log'.format(dte=str(datetime.datetime.now().strftime("%d%b%Y-%H%M%S"))),level=logging.INFO)
+logging.basicConfig(format='%(asctime)s %(message)s',
+                    filename='game-{dte}.log'.format(dte=str(datetime.datetime.now().strftime("%d%b%Y-%H%M%S"))),
+                    level=logging.INFO)
+
 
 class Rankings(ttk.LabelFrame):
     def __init__(self, master=None, contestants=None, *args, **kwargs):
@@ -68,25 +71,24 @@ class Upcoming(ttk.Labelframe):
                 w.configure(font=LARGE_FONT)
             else:
                 w.configure(font=REGULAR_FONT)
-            w.bind('<Button-1>', partial(self.widget_selected, row))    
+            w.bind('<Button-1>', partial(self.widget_selected, row))
             w.pack(fill=tk.X, expand=1)
             self.rows.append(w)
 
         if self.player_selected:
-            self.rows[self.player_selected-2].configure(style='Selected.TLabel')
-
+            self.rows[self.player_selected - 2].configure(style='Selected.TLabel')
 
     def widget_selected(self, row, event):
         # Clear selections
         for w in self.rows:
             w.configure(style='Unselected.TLabel')
 
-        if self.player_selected == row + 2: # Add 2 because we start from [2:]
+        if self.player_selected == row + 2:  # Add 2 because we start from [2:]
             # Unselect player
             self.player_selected = None
         else:
             self.rows[row].configure(style='Selected.TLabel')
-            self.player_selected = row+2
+            self.player_selected = row + 2
 
 
 class CurrentFight(ttk.LabelFrame):
@@ -100,8 +102,9 @@ class CurrentFight(ttk.LabelFrame):
         self.frame_king = ttk.Frame(master=self)
         self.frame_king.pack(fill=tk.BOTH, expand=1, side=tk.LEFT)
 
-        ttk.Label(self.frame_king, font=SMALL_FONT, anchor=tk.CENTER, foreground='red', text="King".upper()).pack()
-        self.lbl_king = ttk.Label(self.frame_king, anchor=tk.CENTER, font=LARGE_FONT, foreground='red')
+        self.frame_king_label = ttk.Label(self.frame_king, font=SMALL_FONT, anchor=tk.CENTER, text="King".upper())
+        self.frame_king_label.pack()
+        self.lbl_king = ttk.Label(self.frame_king, anchor=tk.CENTER, font=LARGE_FONT)
         self.lbl_king.pack(pady=32)
 
         king_button_frame = ttk.Frame(master=self.frame_king)
@@ -119,8 +122,10 @@ class CurrentFight(ttk.LabelFrame):
         self.frame_challenger = ttk.Frame(master=self)
         self.frame_challenger.pack(fill=tk.BOTH, expand=1, side=tk.LEFT)
 
-        ttk.Label(self.frame_challenger, font=SMALL_FONT, anchor=tk.CENTER, foreground='blue', text="Challenger".upper()).pack()
-        self.lbl_challenger = ttk.Label(self.frame_challenger, font=LARGE_FONT, foreground='blue', anchor=tk.CENTER)
+        self.frame_challenger_label = ttk.Label(self.frame_challenger, font=SMALL_FONT, anchor=tk.CENTER,
+                                                text="Challenger".upper())
+        self.frame_challenger_label.pack()
+        self.lbl_challenger = ttk.Label(self.frame_challenger, font=LARGE_FONT, anchor=tk.CENTER)
         self.lbl_challenger.pack(pady=32)
 
         challenger_button_frame = ttk.Frame(master=self.frame_challenger)
@@ -197,26 +202,25 @@ class Timer(ttk.Frame):
 class Scoreboard(tk.Tk):
     def __init__(self, master=None):
         super(Scoreboard, self).__init__(master)
-        parser = configparser.ConfigParser()
-        parser.read('initial_values.ini')
-        self.contestants = [Contestant(name=name) for name in parser.get("contestants", "names").split("\n")]
+        self.parser = configparser.ConfigParser()
+        self.parser.read('initial_values.ini')
+
+        self.contestants = [Contestant(name=name) for name in self.parser.get("contestants", "names").split("\n")]
 
         self.king_name = tk.StringVar()
         self.king_name.set(self.contestants[0].name)
         self.challenger_name = tk.StringVar()
         self.challenger_name.set(self.contestants[1].name)
 
-        time_left = int(parser.get('time', 'time_remaining'))
-
+    def draw(self):
         self.grid()
-        self.create_frames(time_left=time_left)
+        self.create_frames(time_left=int(self.parser.get('time', 'time_remaining')))
         self.columnconfigure(1, weight=1)
         self.rowconfigure(0, weight=1)
 
         self.attach_events()
 
         self.update()
-
 
     def create_frames(self, time_left=0):
         self.frame_rankings = Rankings(master=self)
@@ -231,14 +235,13 @@ class Scoreboard(tk.Tk):
 
         self.frame_current_fight = CurrentFight(master=self.frame_right)
         self.frame_current_fight.pack(fill=tk.BOTH, expand=1)
+        self.frame_current_fight.frame_king_label.config(style='King.TLabel')
+        self.frame_current_fight.lbl_king.config(textvariable=self.king_name, style='King.TLabel')
+        self.frame_current_fight.frame_challenger_label.config(style='Challenger.TLabel')
+        self.frame_current_fight.lbl_challenger.config(textvariable=self.challenger_name, style='Challenger.TLabel')
 
         self.frame_upcoming = Upcoming(master=self.frame_right)
         self.frame_upcoming.pack(fill=tk.BOTH, expand=1)
-        self.frame_current_fight.lbl_king.config(textvariable=self.king_name)
-        self.frame_current_fight.lbl_challenger.config(textvariable=self.challenger_name)
-
-
-
 
     def attach_events(self):
         self.frame_current_fight.button_king_add_point.bind("<Button-1>", self.add_point_to_king)
@@ -246,13 +249,13 @@ class Scoreboard(tk.Tk):
         self.frame_current_fight.button_king_move_to_queue.bind("<Button-1>", self.move_king_to_queue)
 
         self.frame_current_fight.button_challenger_add_point.bind("<Button-1>", self.add_point_for_challenger)
-        self.frame_current_fight.button_challenger_substract_point.bind("<Button-1>", self.substract_point_for_challenger)
+        self.frame_current_fight.button_challenger_substract_point.bind("<Button-1>",
+                                                                        self.substract_point_for_challenger)
         self.frame_current_fight.button_challenger_back_to_queue.bind("<Button-1>", self.move_challenger_back_to_queue)
         self.frame_current_fight.button_challenger_make_king.bind("<Button-1>", self.make_challenger_king)
 
         self.frame_timer.button_add_5_seconds.bind("<Button-1>", self.frame_timer.add_5_seconds)
         self.frame_timer.button_substract_5_seconds.bind("<Button-1>", self.frame_timer.substract_5_seconds)
-
 
     def add_point_to_king(self, event):
         self.contestants[0].score += 1
@@ -264,7 +267,6 @@ class Scoreboard(tk.Tk):
             print(sys.exc_info()[0])
 
         self.update(update_current_fight=False)
-
 
     def substract_point_for_king(self, event):
         self.contestants[0].score -= 1
@@ -292,8 +294,9 @@ class Scoreboard(tk.Tk):
         self.contestants[1].score += 1
 
         try:
-            logging.info("{name} (the current challenger) has scored a point against king {king} and now has {score} point(s).".format(
-                name=self.contestants[1].name, king=self.contestants[0].name, score=self.contestants[1].score))
+            logging.info(
+                "{name} (the current challenger) has scored a point against king {king} and now has {score} point(s).".format(
+                    name=self.contestants[1].name, king=self.contestants[0].name, score=self.contestants[1].score))
         except e:
             print(e)
 
@@ -303,11 +306,11 @@ class Scoreboard(tk.Tk):
         self.contestants[1].score -= 1
 
         try:
-            logging.info("{name} (the current challenger) has lost a point against king {king} and now has {score} point(s).".format(
-                name=self.contestants[1].name, king=self.contestants[0].name, score=self.contestants[1].score))
+            logging.info(
+                "{name} (the current challenger) has lost a point against king {king} and now has {score} point(s).".format(
+                    name=self.contestants[1].name, king=self.contestants[0].name, score=self.contestants[1].score))
         except e:
             print(e)
-
 
         self.update(update_current_fight=False)
 
@@ -323,7 +326,6 @@ class Scoreboard(tk.Tk):
                 name=self.contestants[-1].name))
         except e:
             print(e)
-
 
         self.update()
 
@@ -348,7 +350,8 @@ class Scoreboard(tk.Tk):
                 for player in ranking:
                     if player.score < previous_score:
                         player_position += 1
-                    logging.info("{pos}.\t{name}\t{score}".format(pos=player_position, name=player.name, score=player.score))
+                    logging.info(
+                        "{pos}.\t{name}\t{score}".format(pos=player_position, name=player.name, score=player.score))
 
                 self.destroy()
         if key.keycode == 32:
@@ -359,20 +362,27 @@ class Scoreboard(tk.Tk):
             # Arrow up
             # Don't do anything if this is at the start of the list
             if not self.frame_upcoming.player_selected < 3:
-                self.contestants[self.frame_upcoming.player_selected], self.contestants[self.frame_upcoming.player_selected-1]=self.contestants[self.frame_upcoming.player_selected-1], self.contestants[self.frame_upcoming.player_selected]
+                self.contestants[self.frame_upcoming.player_selected], self.contestants[
+                    self.frame_upcoming.player_selected - 1] = self.contestants[
+                                                                   self.frame_upcoming.player_selected - 1], \
+                                                               self.contestants[self.frame_upcoming.player_selected]
                 self.frame_upcoming.player_selected = self.frame_upcoming.player_selected - 1
-                self.frame_upcoming.rows[self.frame_upcoming.player_selected-2].configure(background="grey")
+                self.frame_upcoming.rows[self.frame_upcoming.player_selected - 2].configure(background="grey")
                 self.update()
 
         if key.keycode == 40 and self.frame_upcoming.player_selected:
             # Arrow down
             try:
-                self.contestants[self.frame_upcoming.player_selected], self.contestants[self.frame_upcoming.player_selected+1]=self.contestants[self.frame_upcoming.player_selected+1], self.contestants[self.frame_upcoming.player_selected]
+                self.contestants[self.frame_upcoming.player_selected], self.contestants[
+                    self.frame_upcoming.player_selected + 1] = self.contestants[
+                                                                   self.frame_upcoming.player_selected + 1], \
+                                                               self.contestants[self.frame_upcoming.player_selected]
                 self.frame_upcoming.player_selected = self.frame_upcoming.player_selected + 1
                 self.update()
             except IndexError:
                 # Reached end of list
                 pass
+
 
 app = Scoreboard()
 app.configure(background='black')
@@ -389,13 +399,16 @@ style.configure('TButton', foreground="grey")
 # bg =style.lookup('TLabel', 'background')
 # print(bg)
 # print(app.winfo_rgb(bg))
-style.configure('Timer.TLabel', font=("Courier New", 40), foreground='red')
-style.configure('ReverseTimer.TLabel', font=("Courier New", 40), foreground='black')
+style.configure('Timer.TLabel', font=("Courier New", 40), foreground=app.parser.get('colours', 'timer_on'))
+style.configure('ReverseTimer.TLabel', font=("Courier New", 40), foreground=app.parser.get('colours', 'timer_off'))
 style.configure('Selected.TLabel', background='white', foreground="black")
 style.configure('Unselected.TLabel', background='black')
 style.configure('TLabelFrame.Label', padding=12, background='black')
 style.configure('TLabelframe.Label', foreground='grey')
+style.configure('King.TLabel', foreground=app.parser.get('colours', 'king'))
+style.configure('Challenger.TLabel', foreground=app.parser.get('colours', 'challenger'))
 
+app.draw()
 
 app.attributes("-fullscreen", True)
 app.bind_all("<Key>", app.catch_keypress)
